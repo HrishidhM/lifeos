@@ -1,0 +1,38 @@
+{
+  "name": "lifeos",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@supabase/ssr": "latest",
+    "@supabase/supabase-js": "latest",
+    "date-fns": "latest",
+    "lucide-react": "latest",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-hook-form": "latest",
+    "recharts": "latest",
+    "zod": "latest",
+    "@hookform/resolvers": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "typescript": "latest",
+    "tailwindcss": "latest",
+    "vitest": "latest",
+    "eslint": "latest",
+    "eslint-config-next": "latest",
+    "@tailwindcss/postcss": "latest",
+    "@types/react-dom": "latest"
+  }
+}

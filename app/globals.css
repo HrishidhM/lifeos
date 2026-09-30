@@ -1,0 +1,11 @@
+@import "tailwindcss";
+:root{--bg:#f3f5f7;--panel:#fff;--ink:#14212b;--muted:#5d6b76;--line:#dde3e8;--accent:#0e6f66;--accent-ink:#fff;--danger:#b42318}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0e151b;--panel:#16202a;--ink:#e8eef2;--muted:#93a1ac;--line:#263440;--accent:#3cc4b3;--accent-ink:#06211d;--danger:#f97066}}
+@theme inline{--color-bg:var(--bg);--color-panel:var(--panel);--color-ink:var(--ink);--color-muted:var(--muted);--color-line:var(--line);--color-accent:var(--accent);--color-accent-ink:var(--accent-ink);--color-danger:var(--danger);--font-sans:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-sans)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.input{width:100%;border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:.55rem .7rem}
+.btn{background:var(--accent);color:var(--accent-ink);border-radius:6px;padding:.55rem .9rem;font-weight:600}
+.btn:disabled{opacity:.6}
+
+:root[data-theme=dark]{--bg:#0e151b;--panel:#16202a;--ink:#e8eef2;--muted:#93a1ac;--line:#263440;--accent:#3cc4b3;--accent-ink:#06211d;--danger:#f97066}
