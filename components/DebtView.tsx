@@ -1,4 +1,5 @@
 "use client";
+import { money as fmtMoney } from "@/utils/format";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -9,7 +10,7 @@ export default function DebtView({ debts, payments, currency }: { debts: Debt[];
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const today = new Date().toISOString().slice(0, 10);
-  const money = (n: number) => new Intl.NumberFormat(undefined, { style: "currency", currency }).format(n);
+  const money = (n: number) => fmtMoney(n, currency);
   const live = debts.filter((d) => d.status !== "Cancelled");
   const original = live.reduce((a, d) => a + d.original_amount, 0);
   const remaining = live.reduce((a, d) => a + d.remaining_amount, 0);

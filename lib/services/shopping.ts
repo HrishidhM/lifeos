@@ -22,7 +22,7 @@ const userId = async (db: SupabaseClient) => (await db.auth.getUser()).data.user
 
 export async function getItems(db: SupabaseClient): Promise<Item[]> {
   const { data, error } = await db.from("shopping_items").select("*").order("planned_date", { nullsFirst: false });
-  if (error) fail("Could not load shopping items.");
+  if (error) fail(`Could not load shopping items: ${error.code} ${error.message}`);;
   return (data as Item[]).map((i) => ({ ...i, estimated_price: i.estimated_price == null ? null : Number(i.estimated_price), actual_price: i.actual_price == null ? null : Number(i.actual_price) }));
 }
 export async function createItem(db: SupabaseClient, input: z.infer<typeof itemSchema>) {

@@ -19,4 +19,10 @@ begin
   insert into debts (user_id, creditor, original_amount, remaining_amount, minimum_payment, due_date) values (uid, 'Education loan', 200000, 200000, 5000, current_date + 2);
   insert into shopping_items (user_id, item, estimated_price, priority, status, planned_date) values (uid, 'Mechanical keyboard', 6500, 'High', 'Planned', current_date + 14);
   insert into notes (user_id, title, content, tags) values (uid, 'RAG ideas', 'Compare chunk sizes and rerankers.', '{ai,rag}');
+  -- Five earlier months of history so the trend charts have something to show.
+  insert into income (user_id, source, amount, date, category)
+    select uid, 'Salary', 60000, (date_trunc('month', current_date) - make_interval(months => n))::date, 'Salary' from generate_series(1, 5) n;
+  insert into expenses (user_id, title, amount, category, date)
+    select uid, c.t || ' (monthly)', c.a + n * 100, c.t, (date_trunc('month', current_date) - make_interval(months => n))::date + 2
+    from generate_series(1, 5) n, (values ('Food', 9000), ('Rent', 18000), ('Transport', 2500)) as c(t, a);
 end $$;

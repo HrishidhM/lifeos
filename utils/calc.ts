@@ -8,3 +8,8 @@ export const budgetStatus = (usage: number) => (usage >= 100 ? "over" : usage >=
 export const goalProgress = (current: number, target: number) => (target > 0 ? clamp((current / target) * 100, 0, 100) : 0);
 export const debtRemaining = (original: number, payments: number[]) => Math.max(0, original - payments.reduce((a, b) => a + b, 0));
 export const completionPct = (completed: number, total: number) => (total > 0 ? (completed / total) * 100 : 0);
+
+/** Percent change from prev to cur; null when there is no baseline. */
+export const pctChange = (cur: number, prev: number) => (prev > 0 ? ((cur - prev) / prev) * 100 : null);
+/** Straight-line projection of month-end spending from spend so far. */
+export const projectedSpend = (spent: number, dayOfMonth: number, daysInMonth: number) => (dayOfMonth > 0 ? (spent / dayOfMonth) * daysInMonth : 0);

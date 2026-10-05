@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { logActivity } from "./activity";
+import { onlyProvided } from "@/utils/patch";
 
 export const HORIZONS = ["10-Year", "5-Year", "Long-Term", "Medium-Term", "Short-Term", "Daily"] as const;
 export const CATEGORIES = ["Career", "Finance", "Education", "Health", "Business", "Personal Development", "Relationships", "Travel", "Lifestyle", "Other"] as const;
@@ -20,7 +21,7 @@ export const goalSchema = z.object({
   progress_percentage: z.number().min(0).max(100).optional(),
 });
 export type GoalInput = z.infer<typeof goalSchema>;
-export type Goal = GoalInput & { id: string; progress_percentage: number };
+export type Goal = GoalInput & { id: string; progress_percentage: number; start_date?: string | null; created_at?: string; updated_at?: string };
 
 const fail = (m: string): never => { throw new Error(m); };
 
@@ -44,7 +45,7 @@ export async function createGoal(db: SupabaseClient, input: GoalInput) {
   return data as Goal;
 }
 export async function updateGoal(db: SupabaseClient, id: string, input: Partial<GoalInput>) {
-  const { error } = await db.from("goals").update(goalSchema.partial().parse(input)).eq("id", id);
+  const { error } = await db.from("goals").update(onlyProvided(goalSchema.partial().parse(input), input)).eq("id", id);
   if (error) fail("Could not update goal.");
   await logActivity(db, { type: "GOAL_UPDATED", entityType: "goal", entityId: id, description: "Updated goal" });
 }
@@ -86,4 +87,10 @@ export function buildTree(goals: Goal[]) {
     (p ? p.children : roots).push(n);
   });
   return roots;
+}
+
+export async function getMilestoneSummary(db: SupabaseClient) {
+  const { data, error } = await db.from("goal_milestones").select("id,goal_id,title,status,target_date").order("target_date", { nullsFirst: false });
+  if (error) fail("Could not load milestones.");
+  return data as { id: string; goal_id: string; title: string; status: string; target_date: string | null }[];
 }

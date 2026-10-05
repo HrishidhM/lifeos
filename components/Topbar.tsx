@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Moon, Plus, Search, Sun } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { createTask } from "@/lib/services/tasks";
@@ -19,25 +19,28 @@ function Modal({ open, onClose, title, children }: { open: boolean; onClose: () 
   );
 }
 
+const subscribeTheme = (cb: () => void) => { addEventListener("themechange", cb); return () => removeEventListener("themechange", cb); };
+const themeIsDark = () => { try { const t = localStorage.getItem("theme"); if (t) return t === "dark"; } catch { /* storage blocked */ } return matchMedia("(prefers-color-scheme: dark)").matches; };
+
 export default function Topbar() {
   const router = useRouter();
-  const [dark, setDark] = useState(false);
+  const dark = useSyncExternalStore(subscribeTheme, themeIsDark, () => false);
   const [adding, setAdding] = useState(false), [searching, setSearching] = useState(false);
   const [kind, setKind] = useState("Task"), [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState(""), [hits, setHits] = useState<Hit[]>([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem("theme");
-    setDark(saved ? saved === "dark" : matchMedia("(prefers-color-scheme: dark)").matches);
     const key = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setSearching(true); } };
     addEventListener("keydown", key); return () => removeEventListener("keydown", key);
   }, []);
   function toggleTheme() {
-    const next = !dark; setDark(next);
-    document.documentElement.dataset.theme = next ? "dark" : "light"; localStorage.setItem("theme", next ? "dark" : "light");
+    const next = !dark;
+    document.documentElement.dataset.theme = next ? "dark" : "light";
+    try { localStorage.setItem("theme", next ? "dark" : "light"); } catch { /* storage blocked */ }
+    dispatchEvent(new Event("themechange"));
   }
   useEffect(() => {
-    if (q.trim().length < 2) { setHits([]); return; }
+    if (q.trim().length < 2) return;
     const t = setTimeout(async () => {
       const db = createClient(), p = `%${q.trim()}%`;
       const [a, b, c, d] = await Promise.all([
@@ -66,6 +69,7 @@ export default function Topbar() {
       setError(null); setAdding(false); router.refresh();
     } catch (err) { setError(err instanceof Error ? err.message : "Could not save."); }
   }
+  const results = q.trim().length >= 2 ? hits : [];
   const btn = "flex items-center gap-1 rounded-md border border-line bg-panel px-3 py-1.5 text-sm";
   return (
     <div className="mb-4 flex justify-end gap-2">
@@ -86,10 +90,10 @@ export default function Topbar() {
       <Modal open={searching} onClose={() => { setSearching(false); setQ(""); }} title="Search">
         <input value={q} onChange={(e) => setQ(e.target.value)} className="input" placeholder="Search tasks, goals, notes, shopping…" aria-label="Search" autoFocus />
         <div className="mt-3 max-h-72 overflow-y-auto text-sm">
-          {q.trim().length >= 2 && hits.length === 0 && <p className="text-muted">No results.</p>}
-          {["Tasks", "Goals", "Notes", "Shopping"].map((g) => hits.some((h) => h.group === g) && (
+          {q.trim().length >= 2 && results.length === 0 && <p className="text-muted">No results.</p>}
+          {["Tasks", "Goals", "Notes", "Shopping"].map((g) => results.some((h) => h.group === g) && (
             <div key={g} className="mb-2"><p className="text-xs text-muted">{g}</p>
-              {hits.filter((h) => h.group === g).map((h, i) => <button key={i} className="block w-full rounded px-2 py-1 text-left hover:bg-line" onClick={() => { setSearching(false); setQ(""); router.push(h.href); }}>{h.label}</button>)}</div>))}
+              {results.filter((h) => h.group === g).map((h, i) => <button key={i} className="block w-full rounded px-2 py-1 text-left hover:bg-line" onClick={() => { setSearching(false); setQ(""); router.push(h.href); }}>{h.label}</button>)}</div>))}
         </div>
       </Modal>
     </div>

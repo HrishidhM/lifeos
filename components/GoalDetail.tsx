@@ -3,17 +3,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { Badge, ProgressBar } from "@/components/ui";
+import { goalHealth, healthLabel } from "@/utils/goals";
 import { completeMilestone, createMilestone, deleteGoal, deleteMilestone, updateGoal, type Goal } from "@/lib/services/goals";
 
 type Ms = { id: string; title: string; status: string; target_date: string | null };
-type Props = { goal: Goal; parent: Goal | null; children: Goal[]; milestones: Ms[]; tasks: { id: string; title: string; status: string }[] };
+type Props = { today: string; goal: Goal; parent: Goal | null; childGoals: Goal[]; milestones: Ms[]; tasks: { id: string; title: string; status: string }[] };
 
-export default function GoalDetail({ goal, parent, children, milestones, tasks }: Props) {
+export default function GoalDetail({ today, goal, parent, childGoals, milestones, tasks }: Props) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const today = new Date().toISOString().slice(0, 10);
+  const health = goalHealth(goal, today);
   async function run(fn: () => Promise<unknown>, after?: () => void) {
-    try { await fn(); setError(null); after ? after() : router.refresh(); } catch (e) { setError(e instanceof Error ? e.message : "Something went wrong."); }
+    try { await fn(); setError(null); if (after) after(); else router.refresh(); } catch (e) { setError(e instanceof Error ? e.message : "Something went wrong."); }
   }
   const db = createClient;
   const byTarget = goal.target_value != null && goal.current_value != null;
@@ -25,14 +27,16 @@ export default function GoalDetail({ goal, parent, children, milestones, tasks }
         <h1 className="text-2xl font-bold">{goal.title}</h1>
         <p className="text-sm text-muted">{goal.goal_horizon} · {goal.category} · {goal.priority} · {goal.status}{goal.target_date ? ` · target ${goal.target_date}` : ""}</p>
         {goal.description && <p className="mt-2">{goal.description}</p>}
+        {health.state === "overdue" && (
+          <div role="alert" className="mt-3 rounded-lg border border-danger/50 bg-danger/5 p-3 text-sm"><Badge tone="danger">{healthLabel(health)}</Badge> <span className="ml-1">The target date ({goal.target_date}) has passed and this goal is not complete. Update the progress, move the date, or mark it complete.</span></div>
+        )}
+        {health.state === "due-soon" && <p className="mt-3"><Badge tone="warn">{healthLabel(health)}</Badge></p>}
       </div>
       {error && <p role="alert" className="text-sm text-danger">{error}</p>}
 
       <section className="bg-panel border border-line rounded-lg p-4 space-y-3" aria-labelledby="pg">
         <h2 id="pg" className="font-semibold">Progress: {Math.round(goal.progress_percentage)}%</h2>
-        <div role="progressbar" aria-valuenow={Math.round(goal.progress_percentage)} aria-valuemin={0} aria-valuemax={100} className="h-2 rounded bg-line">
-          <div className="h-2 rounded bg-accent" style={{ width: `${goal.progress_percentage}%` }} />
-        </div>
+        <ProgressBar value={goal.progress_percentage} label="Goal progress" tone={health.state === "overdue" ? "danger" : "ok"} />
         <form className="flex gap-2 items-end" onSubmit={(e) => {
           e.preventDefault();
           const v = Number(new FormData(e.currentTarget).get("v"));
@@ -71,9 +75,9 @@ export default function GoalDetail({ goal, parent, children, milestones, tasks }
         )}
       </section>
 
-      {children.length > 0 && (
+      {childGoals.length > 0 && (
         <section aria-labelledby="ch"><h2 id="ch" className="font-semibold mb-2">Child goals</h2>
-          <ul className="space-y-1">{children.map((c) => <li key={c.id}><Link className="text-accent underline" href={`/goals/${c.id}`}>{c.goal_horizon}: {c.title}</Link> <span className="text-xs text-muted">{Math.round(c.progress_percentage)}%</span></li>)}</ul></section>
+          <ul className="space-y-1">{childGoals.map((c) => <li key={c.id}><Link className="text-accent underline" href={`/goals/${c.id}`}>{c.goal_horizon}: {c.title}</Link> <span className="text-xs text-muted">{Math.round(c.progress_percentage)}%</span> {goalHealth(c, today).state === "overdue" && <Badge tone="danger">{healthLabel(goalHealth(c, today))}</Badge>}</li>)}</ul></section>
       )}
       <section aria-labelledby="tk"><h2 id="tk" className="font-semibold mb-2">Linked tasks</h2>
         {tasks.length === 0 ? <p className="text-sm text-muted">No tasks linked to this goal yet.</p> :

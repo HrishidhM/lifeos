@@ -1,16 +1,13 @@
 import GoalsView from "@/components/GoalsView";
 import { createClient } from "@/lib/supabase/server";
-import { getGoals, type Goal } from "@/lib/services/goals";
+import { getGoals, getMilestoneSummary } from "@/lib/services/goals";
+import { getContext } from "@/lib/services/profile";
 
 export default async function GoalsPage() {
   const db = await createClient();
-  let goals: Goal[] = [];
-  let error: string | null = null;
-  try { goals = await getGoals(db); } catch (e) { error = (e as Error).message; }
+  const [goals, milestones, ctx] = await Promise.all([getGoals(db), getMilestoneSummary(db), getContext(db)]);
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Goals</h1>
-      {error ? <p role="alert" className="text-danger">{error}</p> : <GoalsView goals={goals} />}
-    </div>
+    <div className="space-y-4"><h1 className="text-2xl font-bold">Goals</h1>
+      <GoalsView goals={goals.map((g) => ({ ...g, progress_percentage: Number(g.progress_percentage) }))} milestones={milestones} today={ctx.today} /></div>
   );
 }

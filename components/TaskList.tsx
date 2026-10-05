@@ -1,14 +1,16 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Link from "next/link";
 import { Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { isOverdueTask } from "@/utils/tasks";
 import { completeTask, createTask, deleteTask, reopenTask } from "@/lib/services/tasks";
 
-type Task = { id: string; title: string; status: string; priority: string; due_date: string | null };
+type Task = { id: string; title: string; status: string; priority: string; due_date: string | null; reschedule_count?: number | null };
 const priorities = ["Low", "Medium", "High", "Critical"] as const;
 
-export default function TaskList({ initial, goals = [] }: { initial: Task[]; goals?: { id: string; title: string }[] }) {
+export default function TaskList({ initial, goals = [], today }: { initial: Task[]; goals?: { id: string; title: string }[]; today?: string }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<"open" | "done" | "all">("open");
@@ -56,7 +58,8 @@ export default function TaskList({ initial, goals = [] }: { initial: Task[]; goa
                 onChange={() => run(() => (t.status === "Completed" ? reopenTask(createClient(), t.id) : completeTask(createClient(), t.id)))} />
               <div className="flex-1 min-w-0">
                 <p className={t.status === "Completed" ? "line-through text-muted" : ""}>{t.title}</p>
-                <p className="text-xs text-muted">{t.priority}{t.due_date ? ` · due ${t.due_date}` : ""}</p>
+                <p className="text-xs text-muted">{t.priority}{t.due_date ? ` · due ${t.due_date}` : ""}
+                  {today && isOverdueTask(t, today) && <> · <Link href="/tasks#overdue" className="text-danger underline">Overdue</Link>{(t.reschedule_count ?? 0) > 0 ? ` · date edited ${t.reschedule_count}×` : ""}</>}</p>
               </div>
               <button aria-label={`Delete "${t.title}"`} className="text-muted hover:text-danger"
                 onClick={() => confirm(`Delete "${t.title}"?`) && run(() => deleteTask(createClient(), t.id))}><Trash2 size={16} /></button>

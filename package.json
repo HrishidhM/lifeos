@@ -6,10 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:db": "node tests/db/reschedule.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "latest",
@@ -33,6 +34,7 @@
     "eslint": "latest",
     "eslint-config-next": "latest",
     "@tailwindcss/postcss": "latest",
-    "@types/react-dom": "latest"
+    "@types/react-dom": "latest",
+    "@electric-sql/pglite": "latest"
   }
 }

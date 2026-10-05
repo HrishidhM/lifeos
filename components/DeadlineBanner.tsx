@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { addDays, format } from "date-fns";
+import { addDays } from "@/utils/dates";
+import { getContext } from "@/lib/services/profile";
 import { createClient } from "@/lib/supabase/server";
 
 const diff = (d: string, today: string) => Math.round((Date.parse(d) - Date.parse(today)) / 86_400_000);
@@ -8,7 +9,7 @@ const when = (n: number) => (n < 0 ? `Overdue by ${-n}d` : n === 0 ? "Due today"
 /** Shown at the top of every app page: overdue items and anything due in the next 3 days. */
 export default async function DeadlineBanner() {
   const db = await createClient();
-  const today = format(new Date(), "yyyy-MM-dd"), soon = format(addDays(new Date(), 3), "yyyy-MM-dd");
+  const { today } = await getContext(db), soon = addDays(today, 3);
   const [t, m, g, d] = await Promise.all([
     db.from("tasks").select("title,due_date").lte("due_date", soon).in("status", ["Todo", "In Progress"]),
     db.from("goal_milestones").select("title,target_date").lte("target_date", soon).neq("status", "Completed"),

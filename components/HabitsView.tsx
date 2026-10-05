@@ -3,13 +3,12 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { createHabit, deleteHabit, toggleHabit, type Habit } from "@/lib/services/habits";
-import { completionRate, currentStreak, localDate, longestStreak, shiftDate } from "@/utils/streak";
+import { completionRate, currentStreak, longestStreak, shiftDate } from "@/utils/streak";
 
-export default function HabitsView({ habits }: { habits: Habit[] }) {
+export default function HabitsView({ habits, today }: { habits: Habit[]; today: string }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const today = localDate();
-  const grid = Array.from({ length: 28 }, (_, i) => shiftDate(today, i - 27));
+    const grid = Array.from({ length: 28 }, (_, i) => shiftDate(today, i - 27));
   async function run(fn: () => Promise<unknown>, form?: HTMLFormElement) {
     try { await fn(); setError(null); form?.reset(); router.refresh(); } catch (e) { setError(e instanceof Error ? e.message : "Something went wrong."); }
   }

@@ -1,4 +1,5 @@
 "use client";
+import { money as fmtMoney } from "@/utils/format";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -6,13 +7,12 @@ import { STATUSES, createItem, deleteItem, setStatus, type Item } from "@/lib/se
 
 const order = { Critical: 0, High: 1, Medium: 2, Low: 3 } as Record<string, number>;
 
-export default function ShoppingView({ items, currency }: { items: Item[]; currency: string }) {
+export default function ShoppingView({ items, currency, today }: { items: Item[]; currency: string; today: string }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("All");
   const [q, setQ] = useState("");
-  const money = (n: number) => new Intl.NumberFormat(undefined, { style: "currency", currency }).format(n);
-  const today = new Date().toLocaleDateString("en-CA");
+  const money = (n: number) => fmtMoney(n, currency);
   const open = items.filter((i) => !["Purchased", "Cancelled"].includes(i.status));
   const planned = open.reduce((a, i) => a + (i.estimated_price ?? 0), 0);
   const bought = items.filter((i) => i.status === "Purchased").reduce((a, i) => a + (i.actual_price ?? i.estimated_price ?? 0), 0);

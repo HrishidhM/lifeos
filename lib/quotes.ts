@@ -1,0 +1,36 @@
+// Unattributed on purpose: sayings like these circulate widely and attributing them from memory risks misquoting people.
+export const QUOTES = [
+  "Your life, your responsibility.",
+  "Do hard things.",
+  "Self-control is the biggest power.",
+  "Win your mind, and you win the world.",
+  "Consistency is the key.",
+  "Do your duty with sincerity. Detach from the outcome.",
+  "Discipline is choosing what you want most over what you want now.",
+  "Small steps, taken every day, build a different life.",
+  "You do not rise to your goals. You fall to your habits.",
+  "Start before you feel ready.",
+  "Be the person your future self will thank.",
+  "Comfort is a slow way to lose a year.",
+  "What you do daily matters more than what you do occasionally.",
+  "The work you avoid is usually the work that changes things.",
+  "Focus on the process. The results will follow.",
+  "A calm mind makes better decisions than a busy one.",
+  "Today's effort is tomorrow's freedom.",
+  "Don't negotiate with your alarm. Win the first minute.",
+  "Progress, not perfection.",
+  "Control your attention, and you control your life.",
+  "Stay patient. Compounding is quiet before it is loud.",
+  "Hard now, easy later. Easy now, hard later.",
+  "You can't control the result. You can control the effort.",
+  "One focused hour beats a distracted day.",
+  "Keep promises to yourself. That is where confidence comes from.",
+  "Do it tired. Do it bored. Do it anyway.",
+  "Clarity comes from action, not from thinking about action.",
+  "Measure yourself against who you were yesterday.",
+  "Your habits are voting for the person you are becoming.",
+  "Finish what you start, then start the next thing.",
+] as const;
+
+/** Picked per request on the server so the first paint is already varied (and matches on hydration). */
+export const randomQuoteIndex = () => Math.floor(Math.random() * QUOTES.length);
